@@ -221,7 +221,7 @@ const refreshAccessToken = aysncHandler(async (req,res) => {
             )
         )   
     } catch (error) {
-        throw new ApiError(401,error?.message || Invalid RefreshTokenn)
+        throw new ApiError(401,error?.message || "Invalid RefreshTokenn")
     }
 })
 
