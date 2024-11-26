@@ -4,6 +4,7 @@ import { User } from "../models/user.model.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import jwt from "jsonwebtoken"
+import mongoose from "mongoose";
 
 const generateAccesAndRefereshTokens = async(userId) =>
     {
@@ -14,6 +15,8 @@ const generateAccesAndRefereshTokens = async(userId) =>
 
         user.refreshToken = refreshToken
         await user.save({ validateBeforeSave: false })
+
+        // await User.findByIdAndUpdate(userId, { refreshToken });
 
         return {accesToken, refreshToken}
          
@@ -156,8 +159,8 @@ const logoutUser = aysncHandler(async(req,res)=>{
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: {
-                refreshToken: undefined
+            $unset: {
+                refreshToken: 1 //this remove field from document
             }
         },
         {
@@ -211,12 +214,12 @@ const refreshAccessToken = aysncHandler(async (req,res) => {
     
         return res
         .status(200)
-        .cookie("acccesToken", acccesToken ,options)
+        .cookie("accessToken", accessToken ,options)
         .cookie("refreshToken", newrefreshToken, options)
         .json(
             new ApiResponse(
                 200,
-                {acccesToken, refreshToken: newrefreshToken},
+                {accessToken, refreshToken: newrefreshToken},
                 "Access Token Refresh successfully"
             )
         )   
@@ -250,7 +253,7 @@ const changeCurrentPassword = aysncHandler(async(req,res)=>{
 const getCurrentUser = aysncHandler(async(req,res)=>{
     return res
     .status(200)
-    .json(200,req.user,"current user fetched sucessfully")
+    .json(new ApiResponse(200,req.user,"current user fetched sucessfully"))
 })
 
 const updateAccountDetails = aysncHandler(async(req,res)=>{
@@ -371,7 +374,7 @@ const getUserChannelProfile = aysncHandler(async(req,res) => {
                     $size: "$subscribers"
                 },
                 channelsSubscribedToCount: {
-                    $size: "$subcribedTo"
+                    $size: "$subscribedTo"
                 },
                 isSubscribed: {
                     $cond: {
@@ -416,7 +419,7 @@ const getWatchHistory = aysncHandler(async(req, res) => {
         },
         {
             $lookup: {
-                from: "Videos",
+                from: "videos",
                 localField: "watchHistory",
                 foreignField: "_id",
                 as: "watchHistory",
