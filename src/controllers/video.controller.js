@@ -292,13 +292,12 @@ const getAllVideos = aysncHandler(async (req, res) => {
         sortOptions[sortBy] = sortType === "asc" ? 1 : -1;
     }
 
-    console.log("sortOptions", sortOptions);
+    // console.log("sortOptions", sortOptions);
 
     try {
-        // Video aggregation pipeline
-        const videos = await Video.aggregate([
+        // Build aggregation pipeline dynamically
+        const pipeline = [
             { $match: filter },
-            { $sort: sortOptions },
             { $skip: (pageNumber - 1) * limitNumber },
             { $limit: limitNumber },
             {
@@ -354,7 +353,15 @@ const getAllVideos = aysncHandler(async (req, res) => {
                     updatedAt: 1,
                 },
             },
-        ]);
+        ];
+
+        // Add $sort stage dynamically if sortOptions is not empty
+        if (Object.keys(sortOptions).length > 0) {
+            pipeline.splice(1, 0, { $sort: sortOptions }); // Add $sort after $match
+        }
+
+        // Execute aggregation pipeline
+        const videos = await Video.aggregate(pipeline);
 
         if (videos.length === 0) {
             throw new ApiError(404, "Videos not found");
