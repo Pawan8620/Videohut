@@ -98,7 +98,6 @@ CLOUDINARY_URL=<cloudinary_url>
 
 # Resend API
 RESEND_API_KEY=<api_key>
-```
 
 ### 4. Start the Server
 Run the development server using the following command:
